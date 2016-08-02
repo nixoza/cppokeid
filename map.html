@@ -7,9 +7,10 @@
         <meta name="author" content="">
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 
-        <title>Pokemon GO Control Panel - PogoPanel</title>
+        <title>Pokemon GO Maps - PogoPanel</title>
 
         <link href="css/style.default.css" rel="stylesheet">
+		<link href="css/jquery.gritter.css" rel="stylesheet">
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -57,9 +58,9 @@
 
                     <h5 class="sidebartitle">Navigation</h5>
                     <ul class="nav nav-pills nav-stacked nav-bracket">
-                        <li class="active"><a href="index.html"><i class="fa fa-home"></i> <span>Dashboard</span></a></li>
-                        <li><a href="email.html"><span class="pull-right badge badge-success">on</span><i class="fa fa-gamepad"></i> <span>Private Bots</span></a></li>
-                        <li><a href="map.html"><i class="fa fa-globe"></i> <span>World Maps</span></a></li>
+                        <li><a href="index.html"><i class="fa fa-home"></i> <span>Dashboard</span></a></li>
+                        <li><a href="bot.html"><span class="pull-right badge badge-success">on</span><i class="fa fa-gamepad"></i> <span>Private Bots</span></a></li>
+                        <li class="active"><a href="map.html"><i class="fa fa-globe"></i> <span>World Maps</span></a></li>
                         <li class="nav-parent"><a href=""><i class="fa fa-edit"></i> <span>Tamer Info</span></a>
                             <ul class="children">
                                 <li><a href="general-forms.html"><i class="fa fa-caret-right"></i> General Forms</a></li>
@@ -93,47 +94,6 @@
                         <li><a href="email.html"><i class="fa fa-gamepad"></i> <span>Private Bots</span></a></li>
                         <li><a href="email.html"><i class="fa fa-globe"></i> <span>World Maps</span></a></li>
                     </ul>
-
-                    <div class="infosummary">
-                        <h5 class="sidebartitle">Information Summary</h5>    
-                        <ul>
-                            <li>
-                                <div class="datainfo">
-                                    <span class="text-muted">Daily Traffic</span>
-                                    <h4>630, 201</h4>
-                                </div>
-                                <div id="sidebar-chart" class="chart"></div>   
-                            </li>
-                            <li>
-                                <div class="datainfo">
-                                    <span class="text-muted">Average Users</span>
-                                    <h4>1, 332, 801</h4>
-                                </div>
-                                <div id="sidebar-chart2" class="chart"></div>   
-                            </li>
-                            <li>
-                                <div class="datainfo">
-                                    <span class="text-muted">Disk Usage</span>
-                                    <h4>82.2%</h4>
-                                </div>
-                                <div id="sidebar-chart3" class="chart"></div>   
-                            </li>
-                            <li>
-                                <div class="datainfo">
-                                    <span class="text-muted">CPU Usage</span>
-                                    <h4>140.05 - 32</h4>
-                                </div>
-                                <div id="sidebar-chart4" class="chart"></div>   
-                            </li>
-                            <li>
-                                <div class="datainfo">
-                                    <span class="text-muted">Memory Usage</span>
-                                    <h4>32.2%</h4>
-                                </div>
-                                <div id="sidebar-chart5" class="chart"></div>   
-                            </li>
-                        </ul>
-                    </div><!-- infosummary -->
 
                 </div><!-- leftpanelinner -->
             </div><!-- leftpanel -->
@@ -328,10 +288,8 @@
 
                 </div><!-- headerbar -->
 
-                <div class="contentpanel">
-                    <div class="panel panel-default">
-<div class="panel-body"> Basic panel example </div>
-</div>
+                <div class="container-map">
+          <div id="map_canvas"></div>
                 </div>
 
             </div><!-- mainpanel -->
@@ -348,9 +306,81 @@
         <script src="js/toggles.min.js"></script>
         <script src="js/retina.min.js"></script>
         <script src="js/jquery.cookies.js"></script>
+		<script src="js/jquery.gritter.min.js"></script>
 
-
+		<script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+		<script src="js/gmaps.js"></script>
         <script src="js/custom.js"></script>
+<script>
+    jQuery(document).ready(function() {
+        "use strict";
+        map_canvas = new GMaps({
+            div: '#map_canvas',
+            lat: -12.043333,
+            lng: -77.028333,
+            zoom: 16,
+            enableNewStyle: true,
+            streetViewControl: false,
+			overviewMapControl: false,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                position: google.maps.ControlPosition.TOP_LEFT,
+                mapTypeIds: [
+                    google.maps.MapTypeId.ROADMAP,
+                    google.maps.MapTypeId.SATELLITE
+                ]
+            },
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_BOTTOM
+            },
+        });
+        GMaps.geolocate({
+            success: function(position) {
+                map_canvas.setCenter(position.coords.latitude, position.coords.longitude);
+                map_canvas.addMarker({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    title: 'Your Position',
+                    infoWindow: {
+                        content: 'You are here!'
+                    }
+                });
+            },
+            error: function(error) {
+                jQuery.gritter.add({
+                    text: 'The Geolocation service failed.',
+                    class_name: 'growl-danger',
+                    sticky: false,
+                    time: ''
+                });
+            },
+            not_supported: function() {
+                jQuery.gritter.add({
+                    text: 'Your browser does not support geolocation',
+                    class_name: 'growl-warning',
+                    sticky: false,
+                    time: ''
+                });
+            },
+            always: function() {
+                jQuery.gritter.add({
+                    text: 'Location found.',
+                    class_name: 'growl-success',
+                    sticky: false,
+                    time: ''
+                });
+            },
+			options: {
+            'enableHighAccuracy': true
+			}
+        });
+    });
+    $(window).resize(function() {
+        var h = $(window).height(),
+            offsetTop = 60; // Calculate the top offset
 
+        $('#map_canvas').css('height', (h - offsetTop));
+    }).resize();
+</script>
     </body>
 </html>
